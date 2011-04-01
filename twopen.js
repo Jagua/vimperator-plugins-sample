@@ -156,16 +156,15 @@ let PLUGIN_INFO =
         def.name,
         def.name[0],
         function (args) {
-          if (args[0].match(/^@([_0-9a-zA-Z]+)$/)) {
+          if (args.literalArg.trim().match(/^@([_0-9a-zA-Z]+)$/)) {
             liberator.open(def.url.replace(/%ID%/, RegExp.$1),
                            (args.bang ? liberator.NEW_TAB : liberator.CURRENT_TAB));
           } else {
-            throw new Error('illigal twitter id : '+args[0]);
+            throw new Error('illigal twitter id : '+args.literalArg);
           }
         },{
-          literal: true,
-          bang: true,
-          argCount: '2', // 0 1 + * ?
+          literal: 0,
+          bang: true
         }
       ));
   });
@@ -177,9 +176,6 @@ let PLUGIN_INFO =
       liberator.echo('(Help) :twopen service[!] @twitterId');
     },
     {
-      literal: true,
-      bang: false,
-      argCount: '2', // 0 1 + * ?
       subCommands: MainSubCommands,
     },
     true // replace
