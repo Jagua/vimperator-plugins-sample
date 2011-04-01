@@ -1,5 +1,5 @@
 /* NEW BSD LICENSE {{{
-Copyright (c) 2009, anekos.
+Copyright (c) 2011, Jagua.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
