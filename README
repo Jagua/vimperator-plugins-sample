@@ -1,2 +1,20 @@
 てすてす
 
+o myecho.js
+  プラグイン書く練習．
+
+o twopen.js
+  Twitter ID 使ってジャンプ．
+
+o google-translator.js (2011-04-23)
+  anekos さん作のプラグインをほんの少しだけ改変．
+  google 翻訳結果が長過ぎても途中で省略されないようにしたつもり．
+  もっと良い方法があるはずだけどとりあえず．
+
+  主に twitter 用には .vimperatorrc に以下を書いておくと楽．
+  " twitter のウェブ画面のツイート本文部
+  cabbr -j .t content.document.querySelector('.tweet-text-large').textContent.trim()
+  " まだまだ短く！ (要alias.js と lazy の設定)
+  lazy alias gt gtrans
+  " ,gt みたいな操作だけで簡単に翻訳表示！
+  nnoremap <Leader>gt :<C-u>gtrans .t<Space><CR>
