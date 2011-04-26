@@ -6,10 +6,13 @@ o myecho.js
 o twopen.js
   Twitter ID 使ってジャンプ．
 
-o google-translator.js (2011-04-23)
+o google-translator.js
+  (2011-04-23 初版)
   anekos さん作のプラグインをほんの少しだけ改変．
   google 翻訳結果が長過ぎても途中で省略されないようにしたつもり．
   もっと良い方法があるはずだけどとりあえず．
+  (2011-04-26 追記)
+  overflow:scroll を white-space:normal に変更．このほうが自然．
 
   主に twitter 用には .vimperatorrc に以下を書いておくと楽．
   " twitter のウェブ画面のツイート本文部
