@@ -41,7 +41,7 @@ let PLUGIN_INFO =
   <author homepage="https://github.com/Jagua">Jagua</author>
   <license>new BSD License (Please read the source code comments of this plugin)</license>
   <license lang="ja">修正BSDライセンス (ソースコードのコメントを参照してください)</license>
-  <updateURL>https://github.com/vimpr/vimperator-plugins/raw/master/twopen.js</updateURL>
+  <updateURL>https://github.com/Jagua/vimperator-plugins-sample/blob/master/twopen.js</updateURL>
   <minVersion>2.3</minVersion>
   <maxVersion>3.0</maxVersion>
   <detail><![CDATA[
@@ -72,7 +72,7 @@ let PLUGIN_INFO =
 
 
     == Command ==
-    :twopen services[!] @user
+    :twopen service[!] @user
 
 
     == Setting ==
@@ -119,7 +119,7 @@ let PLUGIN_INFO =
     name: ['twaudio'],
     url: 'http://twaud.io/users/%ID%',
     },{
-    name: ['twitvideo_jp'],
+    name: ['twitvideojp'],
     url: 'http://twitvideo.jp/contents/lists/%ID%',
     },{
     name: ['twipla'],
