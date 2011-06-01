@@ -37,7 +37,7 @@ let PLUGIN_INFO =
 <VimperatorPlugin>
   <name>toggleurl</name>
   <description>toggle url</description>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
   <author homepage="https://github.com/Jagua">Jagua</author>
   <license>new BSD License (Please read the source code comments of this plugin)</license>
   <license lang="ja">修正BSDライセンス (ソースコードのコメントを参照してください)</license>
@@ -118,11 +118,11 @@ let PLUGIN_INFO =
 (function () {
 
   const SITE_DEFINITION = [{
-    // MDC の日本語を英語を行き来
+    // MDC の日本語と英語を行き来
     url: "^(https:\\/\\/developer\\.mozilla\\.org\\/)(?:[^\\/].*?)(\\/.*?)$",
     toggle: ["RegExp.$1+'ja'+RegExp.$2", "RegExp.$1+'en'+RegExp.$2"],
   },{
-    // WikiPedia の日本語と英語を行き来
+    // Wikipedia の日本語と英語を行き来
     url: "^(http:\\/\\/)(?:[^\\/].*?)(\\.wikipedia\\.org\\/wiki\\/.*)$",
     toggle: ["RegExp.$1+'ja'+RegExp.$2", "RegExp.$1+'en'+RegExp.$2"],
   },{
@@ -138,10 +138,18 @@ let PLUGIN_INFO =
     url: "^(http:\\/\\/www\\.google)(?:[^\\/].*?)\\/(.*)$",
     toggle: ["(RegExp.$1+'.co.jp/'+RegExp.$2).replace(/^(.*?hl=).*?(&.*)$/,'$1ja$2')", "(RegExp.$1+'.com/'+RegExp.$2).replace(/^(.*?hl=).*?(&.*)$/,'$1en$2')"],
   },{
+    // ニコニコ動画の日本版とドイツ版とスペイン版と台湾版を行き来
+    url: '^(http:\\/\\/)(?:www|de|es|tw)(\\.nicovideo\\.jp\\/.*)$',
+    toggle: ["RegExp.$1+'www'+RegExp.$2", "RegExp.$1+'de'+RegExp.$2", "RegExp.$1+'es'+RegExp.$2", "RegExp.$1+'tw'+RegExp.$2"],
 /*
+  },{
     // goo辞書の和英辞書と英和辞書と国語辞書を行き来 (不完全版)
     url: '^(http:\\/\\/dictionary\\.goo\\.ne\\.jp\\/srch\\/)(?:[^\\/].*?)(\\/.*)$',
     toggle: ["RegExp.$1+'je'+RegExp.$2", "RegExp.$1+'ej'+RegExp.$2", "RegExp.$1+'jn'+RegExp.$2"],
+  },{
+    // ja <-> en オールマイティ
+    url: '^(http:\\/\\/.*?\\/)(?:ja|en)(\\/?|\\/?.*?)$',
+    toggle: ["RegExp.$1+'ja'+RegExp.$2", "RegExp.$1+'en'+RegExp.$2"],
   },{
     url: '',
     toggle: [""],
@@ -161,7 +169,7 @@ let PLUGIN_INFO =
 
   function toggleurl (args) {
     SITE_DEFINITION.forEach(function (def) {
-      var re = new RegExp(def.url, "i");
+      var re = new RegExp(def.url);
        if (buffer.URL.match(re)) {
         var urls = [];
         var index = 0, i = 0;
