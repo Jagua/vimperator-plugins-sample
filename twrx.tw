@@ -1,0 +1,264 @@
+/* NEW BSD LICENSE {{{
+Copyright (c) 2011, Jagua.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+3. The names of the authors may not be used to endorse or promote products
+derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+THE POSSIBILITY OF SUCH DAMAGE.
+
+
+###################################################################################
+# http://sourceforge.jp/projects/opensource/wiki/licenses%2Fnew_BSD_license #
+# に参考になる日本語訳がありますが、有効なのは上記英文となります。 #
+###################################################################################
+
+}}} */
+
+liberator.modules.TWrx = (function () {
+  /*
+   * This software is Twittperator plugin.
+   *
+   * please write the following setting into .vimperatorrc.
+   * let liberator.globalVariables.twittperator_twrx_config = {}
+   */
+
+  /*
+   * Config
+   */
+
+  let Config = liberator.globalVariables.twittperator_twrx_config || {
+
+    config: [{
+      label: "containUrl",                   // ラベル指定 (必須)
+      rx: /http:\/\/[a-zA-Z0-9\.\/]+/,       // 正規表現 rx または urlRx (必須)
+                                             // rx だと msg.text に適用を試みる
+                                             // urlRx だと msg.entities.urls の expanded_url に適用を試みる
+      logFile: io.File('~/.twrxUrl.txt'),    // ログファイル (保存したいときは指定する)
+                                             // てけとーなフォーマットで書き出す
+                                             // logFile 指定ない場合はログ保存しない
+      listMax: 1000,                         // リストの最大保持数 (指定しなければ無制限)
+    }, {
+      label: "earthquake",                   // 地震
+      rx: /(earthquake|\u5730\u9707)/,
+      logFile: io.File('~/.twrxEq.txt'),     // この場合 listMax 指定ないので無制限
+    }, {
+      label: "nico",
+      urlRx: /^(http:\/\/\w+\.nicovideo\.jp\/|http:\/\/nico\.ms\/)/,
+      logFile: io.File('~/.twrxNico.txt'),
+    }, {
+      label: "audio",
+      urlRx: /^(http:\/\/voon\.jp\/|http:\/\/tmbox\.net\/|http:\/\/soundcloud\.com\/|http:\/\/.*?\.mp3$)/,
+      logFile: io.File('~/.twrxAudio.txt'),
+    }]
+
+  };
+
+
+  function log (logfile, msg) {
+    try {
+      logfile.write(msg, '>>');
+    } catch (e) {
+      liberator.log(e);
+    }
+  }
+
+  function onMsg (real, msg, raw, streamName) {
+    if (msg.text && msg.user) {
+      for each(data in Config.config) {
+        if (data.rx) {
+          let rx = new RegExp(data.rx);
+          let urls = msg.entities.urls;
+          if (rx.test(msg.text)) {
+            if (real) {
+              Tweets.unshift(msg);
+              if (Tweets.length > TweetsListMax)
+                Tweets.splice(TweetsListMax);
+              //clist[data.label].unshift([data.rx, msg.user.screen_name + ": " + msg.text]);
+              for each(u in urls) {
+                clist[data.label].unshift([(u.expanded_url ? u.expanded_url : "----"), msg.user.screen_name + ": " + msg.text]);
+              }
+              if (data.listMax)
+                clist[data.label].splice(data.listMax);
+              if (data.logFile) {
+                log(data.logFile, [
+                  msg.user.screen_name + "#" + msg.id,
+                  (new Date(msg.created_at)).toLocaleFormat("%Y-%m-%dT%H:%M:%S"),
+                  msg.text.replace(/\n/, " ")
+                  ].join("\t") + "\n");
+              }
+            }
+          }
+        }
+        if (data.urlRx) {
+          let rx = new RegExp(data.urlRx);
+          let urls = msg.entities.urls;
+          for each(u in urls) {
+            if (rx.test(u.expanded_url)) {
+              if (real) {
+                Tweets.unshift(msg);
+                if (Tweets.length > TweetsListMax)
+                  Tweets.splice(TweetsListMax);
+                clist[data.label].unshift([u.expanded_url, msg.user.screen_name + ": " + msg.text]);
+                if (data.listMax)
+                  clist[data.label].splice(data.listMax);
+                if (data.logFile) {
+                  log(data.logFile, [
+                    msg.user.screen_name + "#" + msg.id,
+                    (new Date(msg.created_at)).toLocaleFormat("%Y-%m-%dT%H:%M:%S"),
+                    msg.text.replace(/\n/, " ")
+                    ].join("\t") + "\n");
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function makeOnMsg (real, streamName)
+    function (msg, raw)
+      onMsg(real, msg, raw, streamName);
+
+  function addCommands () {
+    commands.addUserCommand(
+      ['twrx'],
+      'twrx commands',
+      function (args) {
+      },
+      {
+        subCommands: [
+          new Command(
+            ['o[pen]'],
+            'open URL from twrx log',
+            function (args) {
+              let [label, url] = args;
+              if (url) {
+                liberator.open(url, liberator.NEW_TAB);
+              }
+            },
+            {
+              literal: 1,
+              completer: twrxlogCompleter,
+            }
+            ),
+          new Command(
+            ['s[ave]'],
+            'save twrx log',
+            function (args) {
+              Store.set("clist", clist);
+              Store.set("history", Tweets);
+              Store.save();
+            },
+            {
+              literal: 0,
+            }
+            ),
+          ]
+      }
+    );
+  }
+
+  function twrxlogCompleter (context, args) {
+    if (args.completeArg == 0) {
+      context.incomplete = true;
+      context.title = ['label', 'regular expression'];
+      context.filters = [CompletionContext.Filter.textDescription];
+      context.compare = void 0;
+
+      context.incompletion = false;
+      context.completions = [
+        [v.label, ((v.rx) ? v.rx : v.urlRx)]
+        for ([k, v] in Iterator(Config.config))
+        ];
+    } else if (args.completeArg == 1) {
+      context.incomplete = true;
+      context.title = ['url', 'tweet'];
+      context.filters = [CompletionContext.Filter.textDescription];
+      context.compare = void 0;
+      context.incompletion = false;
+      context.completions = clist[args[0]];
+    }
+  }
+
+
+  let Store = storage.newMap("twittperator-twrx", {store: true});
+  let started = false;
+  let readyToStart = false;
+
+  let Tweets = __context__.Tweets;
+  let TweetsListMax = Config.config.listMax || 1000;
+
+
+  if (!Tweets)
+    Tweets = __context__.Tweets = Store.get("history", []);  //現状未使用
+  let clist = Store.get("clist", {});
+
+  for each(data in Config.config) {
+    if (typeof clist[data.label] == 'undefined')
+      clist[data.label] = [];
+  }
+
+  let added = {};
+
+  function start () {
+    if (readyToStart)
+      return;
+    if (started)
+      stop();
+
+    readyToStart = true;
+    started = true;
+    setTimeout(
+      function () {
+        readyToStart = false;
+        //Tweets.reverse().forEach(makeOnMsg(false));
+        plugins.twittperator.ChirpUserStream.addListener(added.chirp = makeOnMsg(true, 'chirp'));
+        plugins.twittperator.TrackingStream.addListener(added.filter = makeOnMsg(true, 'filter'));
+      },
+      1000
+    );
+  }
+
+  function stop () {
+    if (!started)
+      return libertrator.echoerr('TWrx has not been started!');
+
+    plugins.twittperator.ChirpUserStream.removeListener(added.chirp);
+    plugins.twittperator.TrackingStream.removeListener(added.filter);
+    Store.set("clist", clist);
+    Store.set("history", Tweets);
+    Store.save();
+  }
+
+  __context__.onUnload = function() { stop(); };
+
+  addCommands();
+
+  return {start: start, stop: stop};
+
+})();
+
+try {
+  TWrx.start();
+} catch (e) {
+  window.alert(e);
+}

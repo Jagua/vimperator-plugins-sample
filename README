@@ -1,5 +1,13 @@
 てすてす
 
+o twrx.tw
+  (2011-11-12 初版)
+  Twittperator plugin.
+  ツイート本文のなかで正規表現にマッチしたものだけを表示したりする．
+  t.co に短縮化される前の expanded_url を表示したりもする．
+  expanded_url を比較対象にもできる．
+  現在鋭意作成中なのでこっち．
+
 o jwplayer.js
   (2011-08-02 初版)
   JW Player を操作するプラグイン．
