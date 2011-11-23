@@ -56,7 +56,7 @@ liberator.modules.TWrx = (function () {
                                              // logFile 指定ない場合はログ保存しない
       listMax: 1000,                         // リストの最大保持数 (指定しなければ無制限)
     }, {
-      label: "earthquake",                   // 地震
+    label: "earthquake",                     // 地震
       rx: /(earthquake|\u5730\u9707)/,
       logFile: io.File('~/.twrxEq.txt'),     // この場合 listMax 指定ないので無制限
     }, {
@@ -64,12 +64,230 @@ liberator.modules.TWrx = (function () {
       urlRx: /^(http:\/\/\w+\.nicovideo\.jp\/|http:\/\/nico\.ms\/)/,
       logFile: io.File('~/.twrxNico.txt'),
     }, {
+      label: "startSomething",
+      rx: /(投稿しました|を開始しました|ニコ生放送中|\(.*?で配信中\))/,
+      logFile: io.File('~/.twrxStart.txt'),
+    }, {
+      label: "image",
+      urlRx: /^(http:\/\/twitpic\.com\/|http:\/\/twitter\.com\/\?photo_id=|http:\/\/pic\.twitter\.com|http:\/\/yfrog\.com\/|http:\/\/photozou\.jp\/|http:\/\/p\.twipple\.jp\/|http:\/\/lockerz\.com\/|http:\/\/.*?\.(?:png|jpg|gif)$)/,
+      logFile: io.File('~/.twrxImage.txt'),
+      fetch: true,                                          // true or false : media download 機能を使用する[true]／しない[false]
+      dirpath: '~/Pictures/twrxTemp/',                      // media download する場所
+      filename_format: '%SCREEN_NAME%_%Y-%m-%dT%H%M%S',     // media download ファイル名の命名規則
+      filter: function (real, msg, raw, streamName) {       // filter を使用すると高度なフィルタリングができる
+        return (new RegExp('XXXX')).test(msg.user.screen_name) && streamName == 'chirp';  // 例：XXXX ＝ 保存したい人のツイッターID
+      },
+    }, {
       label: "audio",
-      urlRx: /^(http:\/\/voon\.jp\/|http:\/\/tmbox\.net\/|http:\/\/soundcloud\.com\/|http:\/\/.*?\.mp3$)/,
+      urlRx: /^(http:\/\/voon\.jp\/|http:\/\/tmbox\.net\/|http:\/\/soundcloud\.com\/|http:\/\/.*?\.(?:mp3|wav|mp4|ogg)$)/,
       logFile: io.File('~/.twrxAudio.txt'),
-    }]
+    }],
+    debugmode: true,
 
   };
+
+
+  function getMedia(uri, filepath, callback) {
+    var media = { anchor: uri.spec, filepath: filepath };  // filepath..入れてみた..
+    if (/\.gif$|\.jpe?g$|\.pi?ng$/.test(uri.path)){
+      media.image = uri.spec;
+    } else {
+    switch (uri.host) {
+    case "www.pixiv.net":
+      util.httpGet(uri.spec, function(xhr){
+        let imgReg = /<div class=\"front-centered\">.*?<img src=\"(.*?)\"/m;
+        let matches = xhr.responseText.match(imgReg);
+        if (matches && matches[1]) {
+          media.image = matches[1];
+        }
+      });
+      callback(filepath, media);
+      return;
+    case "p.twimg.com":
+      media.image = uri.spec + ":large";
+      break;
+    case "twitpic.com":
+      //media.image = "http://twitpic.com/show/thumb" + uri.path + ".jpg";
+      media.image = "http://twitpic.com/show/full" + uri.path + "";
+      break;
+    case "movapic.com":
+      media.image = "http://image.movapic.com/pic/m_" + uri.path.substr(uri.path.lastIndexOf("/")+1) + ".jpeg";
+      break;
+    case "gyazo.com":
+      media.image = uri.spec;
+      break;
+    case "tweetphoto.com":
+      media.image = "http://TweetPhotoAPI.com/api/TPAPI.svc/imagefromurl?size=thumbnail&url=" + uri.spec;
+      break;
+    case "twittgoo.com":
+      util.httpGet(uri.spec + "/?format=atom", function(xhr){
+        media.image = xhr.responseXML.getElementsByTagName("icon")[0].textContent;
+        callback(filepath, media);
+      });
+      return;
+    case "yfrog.com": {
+      let x = new XMLHttpRequest;
+      x.open("HEAD", uri.spec + ".th.jpg", true);
+      x.onreadystatechange = function(){
+        if (x.readyState == 4) {
+          media.image = x.channel.URI.spec;
+          callback(filepath, media);
+        }
+      }
+      x.send(null);
+    }
+    case "plixi.com":
+      util.httpGet("http://api.plixi.com/api/tpapi.svc/photos/" + uri.path.substr(uri.path.lastIndexOf("/")+1), function(xhr){
+        media.image = xhr.responseXML.getElementsByTagName("ThumbnailUrl")[0].textContent;
+        callback(filepath, media);
+      });
+      return;
+      /*
+    case "www.youtube.com": {
+      let query = uri.path.substr(1).split("?")[1];
+      if (!query) break;
+      let hash = query.split("&").filter(function(param) param.indexOf("v=")==0)[0];
+      if (!hash) break;
+      media.image = "http://i.ytimg.com/vi/" + hash + "/1.jpg";
+      break;
+    }
+    */
+    case "f.hatena.ne.jp": {
+      let [, userid, date] = uri.path.split("/");
+      media.image = ["http://img.f.hatena.ne.jp/images/fotolife/",
+                     userid.charAt(0), "/", userid, "/", date.substr(0, 8),
+                     "/", date, "_m.jpg"].join("");
+      break;
+    }
+    case "photomemo.jp": {
+      let [, user, num] = uri.path.split("/");
+      util.httpGet(uri.prePath + "/" + user + "/rss.xml", function(xhr){
+        let items = xhr.responseXML.querySelectorAll("item");
+        for (let i=0, item; item = items[i]; i++){
+          if (item.querySelector("link").textContent == uri.spec) {
+            media.image = item.querySelector("content").getAttribute("url");
+            callback(filepath, media);
+            return;
+          }
+        }
+      });
+      return;
+    }
+    case "www.flickr.com": {
+      let [,,user, id, id2, setId] = uri.path.split("/");
+      let imgReg;
+      if (id == "sets" && id2) {
+        imgReg = /<img id=\"primary_photo_img\" src=\"([^\"]+)\"/;
+      } else if ( (id2 == "in" && setId && setId.indexOf("set-") == 0) || (user && id) ) {
+        imgReg = /<link rel=\"image_src\" href=\"([^\"]+)\"/;
+      } else {
+        return;
+      }
+      util.httpGet(uri.spec, function(xhr){
+        let matches = xhr.responseText.match(imgReg);
+        if (matches && matches[1]){
+          media.image = matches[1];
+          callback(filepath, media);
+          return;
+        }
+      });
+      return;
+    }
+    case "photozou.jp": {
+      util.httpGet("http://api.photozou.jp/rest/photo_info?photo_id=" + uri.path.substr(uri.path.lastIndexOf("/")+1), function(xhr){
+        let urlElm = xhr.responseXML.getElementsByTagName("thumbnail_image_url")[0];
+        if (urlElm) {
+          media.image = urlElm.textContent;
+          callback(filepath, media);
+        }
+      });
+      return;
+    }
+    default:
+      return;
+    }
+    }
+    if (callback){
+      callback(filepath, media);
+    } else {
+      return media;
+    }
+  }
+
+  function debugOut(str) {
+    if (Config.debugmode) {
+      let tmp = io.File("~/twrxDebug00.txt");
+      tmp.write((new Date).toLocaleFormat("%Y-%m-%dT%H:%M:%S"), ">>");
+      tmp.write("  " + str, ">>");
+    }
+  }
+
+  function debugOut2(fn, str) {
+    if (Config.debugmode) {
+      let tmp = io.File(fn);
+      tmp.write((new Date).toLocaleFormat("%Y-%m-%dT%H:%M:%S"), ">>");
+      tmp.write("  " + str, ">>");
+    }
+  }
+
+
+  function makeURL (s) {
+    var url = Cc["@mozilla.org/network/standard-url;1"].createInstance(Ci.nsIURL);
+    url.spec = s;
+    return url;
+  }
+
+  function fetchMedia(filepath, media) {
+    if ("image" in media) {
+      debugOut(media.image + "\t" + filepath + "\n");
+      let url = media.image;
+      let file;
+      let title = 'twrx';
+      if (filepath) {
+        file = io.File(io.expandPath(filepath));
+      }
+
+      let dm = Cc["@mozilla.org/download-manager;1"].getService(Ci.nsIDownloadManager);
+      let wbp = Cc["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].createInstance(Ci.nsIWebBrowserPersist);
+      file = makeFileURI(file);
+      let dl = dm.addDownload(0, makeURL(url, null, null), file, title, null, null, null, null, wbp);
+      wbp.progressListener = dl;
+      wbp.persistFlags |= wbp.PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION;
+      wbp.saveURI(makeURL(url), null, null, null, null, file);
+      liberator.echo('maybe downloading started');
+    }
+  }
+
+  function fetchMedia0(filepath, media) {
+    if ("image" in media) {
+      let x = new XMLHttpRequest;
+      let uri = util.newURI(media.image);
+      debugOut(media.image + "\n");
+      debugOut(uri.spec + "\n");
+      debugOut(filepath + "\n");
+      x.open("GET", uri.spec, true);
+      x.onreadystatechange = function () {
+        if (x.readyState == 4) {
+          debugOut(responseType + "\n");
+          if (responseType == 'blob') {
+            let file;
+            if (filepath) {
+              file = io.File(io.expandPath(filepath));
+              if (file.exist()) {
+                file = io.File(io.expandPath(filepath + "a"));
+                if (file.exist()) {
+                  return liberator.echoerr('twrx Err: fetchMedia: file already exist! -> ' + file.path);
+                }
+              }
+              file.write(x.response);
+            }
+          }
+        }
+      }
+      x.send(null);
+    }
+  }
+
 
 
   function log (logfile, msg) {
@@ -109,7 +327,11 @@ liberator.modules.TWrx = (function () {
         }
         if (data.urlRx) {
           let rx = new RegExp(data.urlRx);
-          let urls = msg.entities.urls;
+          let urls = msg.entities.urls || [];
+          let media = msg.entities.media;
+          if (media && media.media_url) {
+            urls.unshift({"expanded_url": media.media_url});
+          }
           for each(u in urls) {
             if (rx.test(u.expanded_url)) {
               if (real) {
@@ -125,6 +347,22 @@ liberator.modules.TWrx = (function () {
                     (new Date(msg.created_at)).toLocaleFormat("%Y-%m-%dT%H:%M:%S"),
                     msg.text.replace(/\n/, " ")
                     ].join("\t") + "\n");
+                }
+                if (data.fetch) {
+                  let flag = true;
+                  if (data.filter) {
+                    flag = data.filter.apply(this, arguments);
+                  }
+                  if (flag) {
+                    let uri = util.newURI(u.expanded_url);
+                    let callback = false;
+                    let fnfmt = data.filename_format || '%Y-%m-%dT%H%M%S';
+                    let dirpath = data.dirpath || '~/';
+                    fnfmt = fnfmt.replace(/%SCREEN_NAME%/, msg.user.screen_name);
+                    fnfmt = (new Date).toLocaleFormat(fnfmt);
+                    let filepath = dirpath + fnfmt+".jpg";
+                    getMedia(uri, filepath, fetchMedia);
+                  }
                 }
               }
             }
@@ -170,6 +408,27 @@ liberator.modules.TWrx = (function () {
             },
             {
               literal: 0,
+            }
+            ),
+          new Command(
+            ['d[ebug]'],
+            'debug-mode twrx',
+            function (args) {
+            },
+            {
+              subCommands: [
+                new Command(
+                  ['f[etch]'],
+                  'fetch media in debug-mode twrx',
+                  function (args) {
+                    let uri = util.newURI(args[0].trim());
+                    getMedia(uri, "~/twrxDebug_.jpg", fetchMedia);
+                  },
+                  {
+                    literal: 0,
+                  }
+                  ),
+                ]
             }
             ),
           ]
