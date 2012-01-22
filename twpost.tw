@@ -121,7 +121,6 @@ let PLUGIN_INFO =
 
     let tmpEditor = twpost_editor.replace(/%STRLEN%/, twstrlen(tweet).toString());
     options.store.set('editor', tmpEditor);        //!!
-    alert(tmpEditor);
 
     io.withTempFiles(
       function (file) {
@@ -145,7 +144,7 @@ let PLUGIN_INFO =
 
 
   commands.addUserCommand(
-    ['twpost'],
+    ['twp[ost]'],
     'post tweet with editor - twittperator front-end',
     function (args) {
       twpost(args[0] || "");
