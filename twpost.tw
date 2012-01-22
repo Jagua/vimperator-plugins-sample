@@ -1,0 +1,161 @@
+/* NEW BSD LICENSE {{{
+Copyright (c) 2012, Jagua.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+3. The names of the authors may not be used to endorse or promote products
+derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+THE POSSIBILITY OF SUCH DAMAGE.
+
+
+###################################################################################
+# http://sourceforge.jp/projects/opensource/wiki/licenses%2Fnew_BSD_license #
+# に参考になる日本語訳がありますが、有効なのは上記英文となります。 #
+###################################################################################
+
+}}} */
+
+// PLUGIN_INFO {{{
+let PLUGIN_INFO =
+<VimperatorPlugin>
+  <name>twpost</name>
+  <description>post tweet with editor - twittperator front-end</description>
+  <version>0.1.0</version>
+  <author homepage="https://github.com/Jagua">Jagua</author>
+  <license>new BSD License (Please read the source code comments of this plugin)</license>
+  <license lang="ja">修正BSDライセンス (ソースコードのコメントを参照してください)</license>
+  <updateURL>https://github.com/Jagua/vimperator-plugins-sample/blob/master/twpost.js</updateURL>
+  <minVersion>2.3</minVersion>
+  <maxVersion>3.2</maxVersion>
+  <detail><![CDATA[
+    == Command ==
+    :twpost TweetText
+      nearly equal to execute :tw TweetText,
+      but :twpost launch your text editor and insert TweetText.
+
+      If you define g:twpost_editor as the following setting,
+      your editor show the number of characters of TweetText at the statusline.
+
+
+    == Setting ==
+    add the following setting to your ".vimperatorrc".
+
+    let g:twittperator_plugin_twpost = 1
+    let g:twpost_editor = '/path/to/vim73/gvim -c ":echo \"%STRLEN% chars.\"" -f'
+
+
+  ]]></detail>
+  <detail lang="ja"><![CDATA[
+    == Abstract ==
+      ツイートをエディタで書いてポストするための twittperator プラグイン
+      リプライは送れない
+      文字数を表示
+      プレビュー的にも使えて誤爆防止
+
+
+    == Usage ==
+      :twpost ついったーなう
+        エディタが立ち上がり，バッファに「ついったーなう」が挿入される．
+        .vimperatorrc に後述の gVim の設定をすればステータスラインに（:twpost の引数として書いた）ツイートの文字数を表示する．
+        （編集中の文字数表示については gVim でそういうプラグインがあるはず・・・？）
+        エディタで編集後，その内容が反映されて twittperator でのポスト可能状態となり
+        :tw ドロリッチなう
+        入力待ちになるので良ければ ENTER!
+
+
+    == Setting ==
+      .vimperatorrc に以下のように書く．
+
+      （設定例）
+        let g:twittperator_plugin_twpost = 1
+          twpost.tw を有効にする．
+          twpost.tw を $RUNTIMEDIR/plugin/twittperator/ 以下に配置すること．
+
+        let g:twpost_editor = '/path/to/vim73/gvim -c ":echo \"%STRLEN% chars.\"" -f'
+          gVim のパスとステータスラインに表示するためのコマンドの指定．
+          %STRLEN% の部分はツイート文字数にリプレースされる．
+
+
+    == Todo ==
+      twittperator と連携すると Reply を送れるようになるかも！
+      ポストミスったときのためのヤンク機能があると便利かも．
+
+
+  ]]></detail>
+</VimperatorPlugin>;
+// }}}
+
+(function () {
+
+  function twstrlen (str) {
+    var ptr = 0, len = str.length, newlen = 0;
+    while (ptr < len) {
+      newlen++;
+      var c = str.charCodeAt(ptr++);
+      if (0xD800 <= c && c < 0xDC00) ptr++;
+    }
+    return newlen;
+  }
+
+  function editTweet (tweet) {
+    var inputText = tweet;
+    var origEditor = options.store.get('editor');  //!! ここお行儀が悪いたぶん
+    let twpost_editor = liberator.globalVariables.twpost_editor || "gvim -f";
+
+    let tmpEditor = twpost_editor.replace(/%STRLEN%/, twstrlen(tweet).toString());
+    options.store.set('editor', tmpEditor);        //!!
+    alert(tmpEditor);
+
+    io.withTempFiles(
+      function (file) {
+        file.write(tweet);
+        editor.editFileExternally(file.path);
+        inputText = file.read();
+        return true;
+      }
+    );
+    options.store.set('editor', origEditor);       //!!
+    return inputText;
+  }
+
+  function twpost (str) {
+    var tweet = str;
+    tweet = editTweet( tweet );
+    setTimeout(function (){
+        commandline.open(":", "tw "+ tweet, modes.EX);
+      }, 500);
+  }
+
+
+  commands.addUserCommand(
+    ['twpost'],
+    'post tweet with editor - twittperator front-end',
+    function (args) {
+      twpost(args[0] || "");
+    },
+    {
+      literal: 0,
+    },
+    true
+  );
+
+})();
+
+// vim:sw=2 ts=2 et si fdm=marker:

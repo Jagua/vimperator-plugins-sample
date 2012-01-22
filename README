@@ -1,5 +1,14 @@
 てすてす
 
+o twpost.tw
+  (2012-01-22 初版)
+  Twittperator plugin 予備軍．
+  plugin っぽい名前だが現在 twittperator とは連携していない．
+  ツイートをエディタで書く，または確認してから投稿する．
+  gVim 起動時に文字数をステータスラインに表示．
+  Reply は現在送れない．
+  (参考URL: http://vimperator.g.hatena.ne.jp/nokturnalmortum/20100304/1267718311 )
+
 o twrx.tw
   (2011-11-24 第2版)
   media download 機能を（仮）実装．
