@@ -31,6 +31,10 @@ o twpost.tw
   (参考URL: http://vimperator.g.hatena.ne.jp/nokturnalmortum/20100304/1267718311 )
 
 o twrx.tw
+  (2013-01-10 第3版)
+  nsIWebBrowserPersist.saveURI() に第 7 引数 PrivacyContext を与えるようにした．
+  (for Firefox 18.0)
+
   (2011-11-24 第2版)
   media download 機能を（仮）実装．
   filter 機能により高度なフィルタリングをユーザーが行える．

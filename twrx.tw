@@ -1,5 +1,5 @@
 /* NEW BSD LICENSE {{{
-Copyright (c) 2011, Jagua.
+Copyright (c) 2011-2013, Jagua.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -249,11 +249,14 @@ liberator.modules.TWrx = (function () {
 
       let dm = Cc["@mozilla.org/download-manager;1"].getService(Ci.nsIDownloadManager);
       let wbp = Cc["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].createInstance(Ci.nsIWebBrowserPersist);
+      let privacyContext = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                                 .getInterface(Components.interfaces.nsIWebNavigation)
+                                 .QueryInterface(Components.interfaces.nsILoadContext);
       file = makeFileURI(file);
       let dl = dm.addDownload(0, makeURL(url, null, null), file, title, null, null, null, null, wbp);
       wbp.progressListener = dl;
       wbp.persistFlags |= wbp.PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION;
-      wbp.saveURI(makeURL(url), null, null, null, null, file);
+      wbp.saveURI(makeURL(url), null, null, null, null, file, privacyContext);
       liberator.echo('maybe downloading started');
     }
   }
