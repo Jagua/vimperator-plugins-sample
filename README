@@ -1,5 +1,12 @@
 てすてす
 
+o graphical-position.js
+  (2014-04-14 初版)
+  Graphical な Position．
+  set status で設定する position は垂直スクロール位置を数値で
+  表示していたけど，これはその円グラフ表示版．
+  図形は SVG で表示している．
+
 o trackadd.tw
   (2012-07-11 初版)
   g:twittperator_track_words の値はいじらずに，Track する Words を
