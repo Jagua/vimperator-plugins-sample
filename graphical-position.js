@@ -56,8 +56,6 @@ var INFO = xml`
 (function () {
   var e = document.createElement('toolbaritem');
   e.setAttribute('id', 'liberator-status-gposition');
-  var c = document.createElement('toolbarbutton');
-  e.appendChild(c);
   document.getElementById('liberator-status').appendChild(e);
 
   drawGPosition_init();
