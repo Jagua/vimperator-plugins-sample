@@ -56,12 +56,22 @@ var INFO = xml`
     </description>
   </item>
   <item>
+    <tags>plugins.kancolle.kanColle.searchInKanColleWiki()</tags>
+    <spec>nnoremap <a>key</a> :js plugins.kancolle.kanColle.searchInKanColleWiki()<k name="CR"/></spec>
+    <description>
+      <p>
+        tabopen kancolle wiki.
+        (default: <em>,kw</em>)
+      </p>
+    </description>
+  </item>
+  <item>
     <tags>plugins.kancolle.kanColle.gotoKanColleWiki()</tags>
     <spec>nnoremap <a>key</a> :js plugins.kancolle.kanColle.gotoKanColleWiki()<k name="CR"/></spec>
     <description>
       <p>
         tabopen kancolle wiki by i'm feeling lucky.
-        (default: <em>,kw</em>)
+        (default: <em>,kW</em>)
       </p>
     </description>
   </item>
@@ -109,6 +119,38 @@ var kanColle = (function () {
   );
 
 
+  function search_in_kancolle_wiki() {
+    const kancolle_wiki_base_url = 'http://wikiwiki.jp/kancolle/?';
+    let uconv = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
+                          .getService(Components.interfaces.nsIScriptableUnicodeConverter);
+    uconv.charset = 'euc-jp';
+    commandline.input('艦これWiki ',
+      function(arg) {
+        liberator.open(kancolle_wiki_base_url + escape(uconv.ConvertFromUnicode(arg)),
+                       liberator.NEW_TAB);
+        commandline.close();
+      }
+    );
+  }
+
+
+  mappings.add(
+    [modes.NORMAL],
+    [',kw'],
+    'search a word in the KanColle wiki.',
+    function () {
+      search_in_kancolle_wiki();
+    },
+    {
+      noremap: true,
+      silent: false,
+      motion: false,
+      count: false,
+      arg: false
+    }
+  );
+
+
   function goto_kancolle_wiki() {
     const ifl_base_url = 'http://www.google.com/search?ie=UTF-8&oe=UTF-8'
                          + '&sourceid=navclient&btnI=1&hl=ja&q=';
@@ -125,7 +167,7 @@ var kanColle = (function () {
 
   mappings.add(
     [modes.NORMAL],
-    [',kw'],
+    [',kW'],
     "I'm feeling lucky to the KanColle wiki.",
     function () {
       goto_kancolle_wiki();
@@ -143,6 +185,7 @@ var kanColle = (function () {
   return {
     switchToKanColleTab: function () switch_to_kancolle_tab(),
     gotoKanColleWiki: function () goto_kancolle_wiki(),
+    searchInKanColleWiki: function () search_in_kancolle_wiki(),
   };
 
 
