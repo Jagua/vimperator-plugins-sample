@@ -152,8 +152,8 @@ var kanColle = (function () {
 
 
   function goto_kancolle_wiki() {
-    const ifl_base_url = 'http://www.google.com/search?ie=UTF-8&oe=UTF-8'
-                         + '&sourceid=navclient&btnI=1&hl=ja&q=';
+    const ifl_base_url = "http://www.google.com/search?ie=UTF-8&oe=UTF-8"
+                         + "&sourceid=navclient&btnI=I'm+Feeling+Lucky&hl=ja&q=";
 
     commandline.input("I'm feeling lucky (艦これWiki) ",
       function(arg) {
