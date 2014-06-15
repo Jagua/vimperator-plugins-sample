@@ -1,8 +1,10 @@
 てすてす
 
-o kancolle.js
-  (2014-05-13 初版)
-  艦これタブに素早く戻ったり，艦これ Wiki に I'm feeling lucky で飛んだり．
+o firefox-channel-badge.js
+  (2014-06-16 初版)
+  StatusLine に Firefox の update channel を表示する．
+  modes じゃなくて単に StatusLine に highlight で表示してるだけなので
+  URL が長すぎると重なったり，echomsg で位置が動く，などの仕様あり．
 
 o graphical-position.js
   (2014-04-14 初版)
