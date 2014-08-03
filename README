@@ -1,5 +1,12 @@
 てすてす
 
+o anybeats.js
+  (2014-08-03 初版)
+  Any Beats のための超個人用プラギン．
+  ノートページで譜面IDらしき文字列があると補完で開きやすく．
+  プレイ画面を開くと，画面上部を隠してプレイできるように，
+  自動でスクロールしてくれるお節介機能付き．
+
 o firefox-channel-badge.js
   (2014-06-16 初版)
   StatusLine に Firefox の update channel を表示する．
