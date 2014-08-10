@@ -83,6 +83,66 @@ var INFO = xml`
         }
     },
 
+    getMyRecord: function (callback) {
+      util.httpGet('http://www.anybeats.jp/my/record/', function (xhr) {
+        if (callback) {
+          callback((new DOMParser()).parseFromString(xhr.responseText, 'text/html'));
+        }
+      });
+    },
+
+    miTest: function (res) {
+      let r = [];
+      for (var i = 1; i <= 4; i++ ) {
+        if (res.querySelectorAll('.note_table tr.game_type0')[i - 1]
+               .querySelector('.point .rank').innerHTML.match(/(\d{2}\.\d{3})/)) {
+          r[i - 1] = { title: res.querySelectorAll('.note_table tr.game_type0')[i - 1]
+                                 .querySelector('.title a').innerHTML,
+                       rank: RegExp.$1,
+          };
+        }
+      }
+      Ab.showResult(r); // XXX: not 'this' but 'Ab'.
+    },
+
+    rankTest: function () {
+      this.getMyRecord(this.miTest);
+    },
+
+    showResult: function (r) {
+      var sum = 0;
+      var text = `<h1>(mi) Rank Test Result</h1>
+                  <hr/><ul style='margin:0'>`;
+      for (var i = 1; i <= 4; i++) {
+        text += `<li style='clear:both;list-style-type:none'>
+                 <span style='width:100px;float:left;text-align:right'>${r[i - 1].rank}</span>
+                 <span style='width:auto;margin-left:50px;float:left'>${r[i - 1].title}</span>
+                 </li>`;
+        sum += parseFloat(r[i - 1].rank);
+      }
+      text += `</ul>
+               <hr style='clear:both;margin:0'/>
+               <ul style='margin:0'>
+               <li style='list-style-type:none'>
+               <span style='width:100px;float:left;text-align:right'>
+               ${(Math.round(sum * 1000) / 1000).toString()}
+               </span>
+               <span style='width:auto;margin-left:50px;float:left'>`;
+      if (parseFloat(r[0].rank) >= 95 &&
+          parseFloat(r[1].rank) >= 95 &&
+          parseFloat(r[2].rank) >= 95 &&
+          parseFloat(r[3].rank) >= 95 &&
+          sum >= 380) {
+        text += `ヾﾉ｡ÒㅅÓ)ﾉｼ`;
+      } else {
+        text += `｜⌒~⊃｡Д｡)⊃`;
+      }
+      text += `</span></li></ul><div style='clear:both'/>`;
+
+      liberator.echo(`<div style='white-space:normal'>${text}</div>`,
+                     commandline.FORCE_MULTILINE);
+    },
+
     openCompleter: function (context, args) {
       var url = buffer.URL;
       if (url.match(/^http:\/\/www\.anybeats\.jp\/note\//)) {
@@ -124,6 +184,21 @@ var INFO = xml`
         literal: 0,
         bang: true,
         completer: Ab.openCompleter,
+      }
+    ),
+    new Command(
+      ['t[est]'],
+      'rank test',
+      function (args) {
+        if (content.document.domain == 'www.anybeats.jp') {
+          Ab.rankTest();
+        } else {
+          liberator.echoerr('anybeats.js can only run at www.anybeats.jp.');
+        }
+      },
+      {
+        literal: 0,
+        bang: false,
       }
     ),
   ];
