@@ -53,6 +53,14 @@ var INFO = xml`
     </p>
     </description>
   </item>
+  <item>
+    <tags>g:anybeats_scroll_percentage</tags>
+    <spec><oa>g:</oa>anybeats_scroll_percentage</spec>
+    <spec>liberator.globalVariables.anybeats_scroll_percentage</spec>
+    <description>
+      <p>a percentage to scroll in play pages.</p>
+    </description>
+  </item>
 </plugin>`;
 // }}}
 
@@ -257,7 +265,9 @@ var INFO = xml`
   // 画面上半分自動隠し
   autocommands.add('DOMLoad', /^http:\/\/www\.anybeats\.jp\/#!\/simple\/n\d+$/,
                    function() {
-                     setTimeout(function () events.feedkeys('41%', false), 1500);
+                     let per = (liberator.globalVariables.anybeats_scroll_percentage || 41).toString();
+                     if (per.match(/^\d+$/))
+                       setTimeout(function () events.feedkeys(per + '%', false), 1500);
                    }
   );
 
