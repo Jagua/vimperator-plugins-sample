@@ -1,5 +1,15 @@
 てすてす
 
+o graphical-position-element.js
+  (2014-12-11 初版)
+  Graphical な Position (Element版)．
+  元祖 Graphical な Position (graphical-position.js) はページの
+  スクロール位置を表示しているけど，こちらはページの中の或る
+  特定の要素のスクロール位置を表示．
+  図形は CSS で表示している．
+  LDR と Gmail は標準で対応．他サイトは g:gposition_element_siteinfo
+  に別途定義することで設定可能．
+
 o anybeats.js
   (2014-08-03 初版)
   Any Beats のための超個人用プラギン．
