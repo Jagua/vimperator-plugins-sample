@@ -9,6 +9,8 @@ o graphical-position-element.js
   図形は CSS で表示している．
   LDR と Gmail は標準で対応．他サイトは g:gposition_element_siteinfo
   に別途定義することで設定可能．
+  (注) graphical-position.js のインストールが必須で，本プラギンは
+       graphical-position.js の後に読み込まないといけない．
 
 o anybeats.js
   (2014-08-03 初版)
