@@ -1,5 +1,5 @@
 /* NEW BSD LICENSE {{{
-Copyright (c) 2014, Jagua.
+Copyright (c) 2014-2015, Jagua.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -141,10 +141,21 @@ var INFO = xml`
       }
     },
 
+    querySelector: function (selector) {
+      let e = undefined;
+      if (typeof selector === 'function') {
+        liberator.log(selector());
+        e = content.document.querySelector(selector());
+      } else if (typeof selector === 'string') {
+        e = content.document.querySelector(selector);
+      }
+      return e;
+    },
+
     getPercentage: function (name) {
       if (api._siteinfo.hasOwnProperty(name)) {
         let selector = api._siteinfo[name].selector;
-        let e = content.document.querySelector(selector);
+        let e = api.querySelector(selector);
         let percent = 100.0 * e.scrollTop / (e.scrollHeight - e.clientHeight);
         return percent;
       }
@@ -153,7 +164,7 @@ var INFO = xml`
     addEventListener: function (name) {
       if (api._siteinfo.hasOwnProperty(name)) {
         let selector = api._siteinfo[name].selector;
-        let e = content.document.querySelector(selector);
+        let e = api.querySelector(selector);
         e.addEventListener('scroll', api.statusUpdate, false);
         api.storeNode(e);
       }
