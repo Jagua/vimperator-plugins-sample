@@ -50,7 +50,7 @@ var INFO = xml`
     hiTemplate: `hi -append StatusLine  background-image: url(data:image/svg+xml,%svg%);
                                         background-position: top left;
                                         background-attachment: local;
-                                        background-repeat: no-repeat;`
+                                        background-repeat: no-repeat;`,
     getSVG: function () {
       let badgeColor = (this.updateChannel.hasOwnProperty(updateChannel)) ?
                         this.updateChannel[updateChannel].badgeColor : '#000';
