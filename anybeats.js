@@ -1,5 +1,5 @@
 /* NEW BSD LICENSE {{{
-Copyright (c) 2014, Jagua.
+Copyright (c) 2014-2016, Jagua.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -165,14 +165,9 @@ var INFO = xml`
       context.incomplete = false;
       context.title = ['id', 'title'];
       context.compare = void 0;
-      context.completions = [
-        [id, title]
-        for ([id, title] of filtered.map(function(s) {
-              return [s.replace(/.*?(n\d+)\D*/, '$1'), s];
-            }
-          )
-        )
-      ];
+      context.completions = filtered.map(function(s) {
+        return [s.replace(/.*?(n\d+)\D*/, '$1'), s];
+      });
     },
   };
 
