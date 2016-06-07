@@ -1,0 +1,21 @@
+/*
+ * Please write the below line into .vimperatorrc.
+ * let g:twittperator_plugin_twpf = 1
+ */
+
+(function () {
+  const TW = liberator.plugins.twittperator;
+
+  TW.SubCommands.add(
+    TW.SubCommand({
+      command: ['pf'],
+      description: 'tabopen twpf',
+      action: function(arg) {
+        liberator.open('http://twpf.jp/' + arg, liberator.NEW_TAB);
+      },
+      timelineComplete: true,
+      completer: TW.Completers.screenName()
+    })
+  );
+
+})();
