@@ -1,5 +1,16 @@
 てすてす
 
+o pika.js
+  (2018-08-28 初版)
+  thunder.js の後継．
+  1) まず，光ったらリターンキーを押下
+  2) 次に，音が聞こえたらリターンキーを押下
+  で雷までの距離を表示する．
+
+o tesseract.js
+  (2018-08-28 初版)
+  画像の中に書かれた文字を読み取る． (要 Tesseract)
+
 o graphical-position-element.js
   (2014-12-11 初版)
   Graphical な Position (Element版)．
@@ -51,7 +62,7 @@ o thunder.js
 
 o savebufferurl.js
   (2012-05-01 初版)
-  開いてる全てのタブの URL をファイル"~/bufferUrlList.txt" に書き留める． 
+  開いてる全てのタブの URL をファイル"~/bufferUrlList.txt" に書き留める．
 
 o twpost.tw
   (2012-01-22 初版)
